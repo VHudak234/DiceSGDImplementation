@@ -6,6 +6,7 @@ import timm
 from opacus.validators import ModuleValidator
 import warnings
 import os
+import torchvision
 import gc
 
 class file_logger():
@@ -31,7 +32,7 @@ if __name__ == '__main__':
     warnings.filterwarnings("ignore")
     parser = argparse.ArgumentParser(description='PyTorch CIFAR Training')
     parser.add_argument('--lr', default=0.1, nargs="+", type=float, help='learning rate list')
-    parser.add_argument('--epoch', default=3, type=int,help='numter of epochs')
+    parser.add_argument('--epoch', default=20, type=int,help='numter of epochs')
     parser.add_argument('--bs', default=1000, type=int, help='batch size')
     parser.add_argument('--mnbs', default=16, type=int, help='mini batch size')
     parser.add_argument('--C', default=0.5, nargs="+", type=float, help='clipping threshold')
@@ -50,27 +51,31 @@ if __name__ == '__main__':
 
     train_dl, test_dl = generate_Cifar(args.mnbs)
     sample_size = 50000
-    for lr in args.lr:
-        for C in args.C:
-            for C2 in args.C2:
-                lr_true = lr/C
-                log_file = file_logger(log_file_path, 2, ["test_acc","test_loss"], heading = "E=%d, B=%d, C=%-.6f, C2=%-.6f, lr=%-.6f"%(args.epoch,args.bs,C, C2, lr))
-                model = timm.create_model(args.model, pretrained=True, num_classes = 10)
-                model = ModuleValidator.fix(model)
-                for l,param in enumerate(model.parameters()):
-                    if l<2:
-                        param.requires_grad = False
-                if args.algo == 'ClipSGD':
-                    ClipSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, device, lr_true, args.method, log_file)
-                elif args.algo == 'EFSGD':
-                    EFSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, C2, device, lr_true, args.method, log_file)
-                elif args.algo == 'DPSGD':
-                    DPSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, device, lr_true, args.method, log_file)
-                elif args.algo == 'DiceSGD':
-                    DiceSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, C2, device, lr_true, args.method, log_file)
-                else:
-                    raise RuntimeError("Unknown Algorithm!")
-                del model
-                gc.collect()
-                torch.cuda.empty_cache()
+    lr = args.lr
+    C = args.C
+    C2 = args.C2
+    # for lr in args.lr:
+    #     for C in args.C:
+    #         for C2 in args.C2:
+    lr_true = lr/C
+    log_file = file_logger(log_file_path, 2, ["test_acc","test_loss"], heading = "E=%d, B=%d, C=%-.6f, C2=%-.6f, lr=%-.6f"%(args.epoch,args.bs,C, C2, lr))
+    # model = timm.create_model(args.model, pretrained=False, num_classes = 10)
+    model = torchvision.models.resnet18(classes=10)
+    model = ModuleValidator.fix(model)
+    for l,param in enumerate(model.parameters()):
+        if l<2:
+            param.requires_grad = False
+    if args.algo == 'ClipSGD':
+        ClipSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, device, lr_true, args.method, log_file)
+    elif args.algo == 'EFSGD':
+        EFSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, C2, device, lr_true, args.method, log_file)
+    elif args.algo == 'DPSGD':
+        DPSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, device, lr_true, args.method, log_file)
+    elif args.algo == 'DiceSGD':
+        DiceSGD(model, train_dl, test_dl, args.bs, sample_size, args.mnbs, args.epoch, C, C2, device, lr_true, args.method, log_file)
+    else:
+        raise RuntimeError("Unknown Algorithm!")
+    del model
+    gc.collect()
+    torch.cuda.empty_cache()
 
