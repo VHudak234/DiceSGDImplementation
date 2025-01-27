@@ -15,13 +15,13 @@ class PrivacyEngine_Dice(PrivacyEngine):
         self.first_minibatch = True
         self.error_max_grad_norm = error_max_grad_norm
     def attach_dice(self, optimizer):
-        # autograd_grad_sample.add_hooks(model=self.module, loss_reduction=self.loss_reduction,
-        #                                clipping_mode=self.clipping_mode, bias_only=self.bias_only,
-        #                                clipping_style=self.clipping_style, block_heads=self.block_heads,
-        #                                named_params=self.named_params, named_layers=self.named_layers,
-        #                                clipping_fn=self.clipping_fn,
-        #                                numerical_stability_constant=self.numerical_stability_constant,
-        #                                max_grad_norm_layerwise=self.max_grad_norm_layerwise)
+        autograd_grad_sample.add_hooks(model=self.module, loss_reduction=self.loss_reduction,
+                                       clipping_mode=self.clipping_mode, bias_only=self.bias_only,
+                                       clipping_style=self.clipping_style, block_heads=self.block_heads,
+                                       named_params=self.named_params, named_layers=self.named_layers,
+                                       clipping_fn=self.clipping_fn,
+                                       numerical_stability_constant=self.numerical_stability_constant,
+                                       max_grad_norm_layerwise=self.max_grad_norm_layerwise)
 
         # Override step.
         def dp_step(_self, **kwargs):
