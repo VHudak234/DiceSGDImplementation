@@ -59,8 +59,8 @@ if __name__ == '__main__':
     #         for C2 in args.C2:
     lr_true = lr/C
     log_file = file_logger(log_file_path, 2, ["test_acc","test_loss"], heading = "E=%d, B=%d, C=%-.6f, C2=%-.6f, lr=%-.6f"%(args.epoch,args.bs,C, C2, lr))
-    # model = timm.create_model(args.model, pretrained=False, num_classes = 10)
-    model = torchvision.models.resnet18(classes=10)
+    model = timm.create_model(args.model, pretrained=True, num_classes = 10)
+    # model = torchvision.models.resnet18(num_classes=10)
     model = ModuleValidator.fix(model)
     for l,param in enumerate(model.parameters()):
         if l<2:
